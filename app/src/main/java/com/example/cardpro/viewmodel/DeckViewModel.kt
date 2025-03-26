@@ -118,13 +118,14 @@ class DeckViewModel : ViewModel() {
     /**
      * デッキにカードを追加する
      */
-    fun addCardToDeck(card: CardInfo) {
+    fun addCardToDeck(card: CardInfo, count: Int = 1) {
         selectedDeck?.let { deck ->
             val index = _decks.indexOfFirst { it.name == deck.name }
             if (index != -1) {
-                val updatedCards = deck.cards.toMutableList().apply {
-                    add(card)
-                }
+                val updatedCards = deck.cards.toMutableMap()
+                val currentCount = updatedCards[card] ?: 0
+                updatedCards[card] = currentCount + count
+                
                 _decks[index] = deck.copy(cards = updatedCards)
                 // 選択中のデッキも更新
                 _selectedDeck.value = _decks[index]
@@ -134,15 +135,40 @@ class DeckViewModel : ViewModel() {
     }
 
     /**
-     * デッキからカードを削除する
+     * デッキからカードを1枚削除する
      */
     fun removeCardFromDeck(card: CardInfo) {
         selectedDeck?.let { deck ->
             val index = _decks.indexOfFirst { it.name == deck.name }
             if (index != -1) {
-                val updatedCards = deck.cards.toMutableList().apply {
-                    removeAll { it.name == card.name }
+                val updatedCards = deck.cards.toMutableMap()
+                val currentCount = updatedCards[card] ?: 0
+                
+                if (currentCount > 1) {
+                    // 枚数が2枚以上なら1枚減らす
+                    updatedCards[card] = currentCount - 1
+                } else {
+                    // 1枚しかなければ削除
+                    updatedCards.remove(card)
                 }
+                
+                _decks[index] = deck.copy(cards = updatedCards)
+                // 選択中のデッキも更新
+                _selectedDeck.value = _decks[index]
+            }
+        }
+    }
+    
+    /**
+     * デッキからカードをすべて削除する
+     */
+    fun removeAllCardFromDeck(card: CardInfo) {
+        selectedDeck?.let { deck ->
+            val index = _decks.indexOfFirst { it.name == deck.name }
+            if (index != -1) {
+                val updatedCards = deck.cards.toMutableMap()
+                updatedCards.remove(card)
+                
                 _decks[index] = deck.copy(cards = updatedCards)
                 // 選択中のデッキも更新
                 _selectedDeck.value = _decks[index]

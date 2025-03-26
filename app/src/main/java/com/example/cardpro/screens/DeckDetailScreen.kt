@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -178,10 +179,14 @@ fun DeckDetailScreen(
                             contentPadding = PaddingValues(vertical = 8.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            items(currentDeck.cards) { card ->
+                            items(currentDeck.cards.entries.toList()) { entry ->
+                                val card = entry.key
+                                val count = entry.value
                                 DeckCardItem(
                                     card = card,
-                                    onRemove = { viewModel.removeCardFromDeck(card) }
+                                    count = count,
+                                    onRemove = { viewModel.removeCardFromDeck(card) },
+                                    onRemoveAll = { viewModel.removeAllCardFromDeck(card) }
                                 )
                             }
                         }
@@ -192,7 +197,7 @@ fun DeckDetailScreen(
                 if (viewModel.showAddCardDialog) {
                     AddCardToDeckDialog(
                         onDismiss = { viewModel.hideAddCardDialog() },
-                        onConfirm = { viewModel.addCardToDeck(it) }
+                        onConfirm = { card, count -> viewModel.addCardToDeck(card, count) }
                     )
                 }
             } ?: run {
@@ -214,7 +219,9 @@ fun DeckDetailScreen(
 @Composable
 fun DeckCardItem(
     card: CardInfo,
-    onRemove: () -> Unit
+    count: Int,
+    onRemove: () -> Unit,
+    onRemoveAll: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -245,16 +252,50 @@ fun DeckCardItem(
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-                Text(
-                    text = card.name,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = card.name,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    
+                    Spacer(modifier = Modifier.width(8.dp))
+                    
+                    // カード枚数表示
+                    Card(
+                        modifier = Modifier
+                            .size(24.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "$count",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+                
                 Text(
                     text = "レアリティ: ${card.rarity}",
                     fontSize = 14.sp,
                     modifier = Modifier.padding(top = 4.dp)
                 )
+                
+                if (card.location.isNotBlank()) {
+                    Text(
+                        text = "保管場所: ${card.location}",
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(top = 2.dp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
             
             // 攻撃力と防御力
@@ -281,15 +322,40 @@ fun DeckCardItem(
                 )
             }
             
-            // 削除ボタン
-            Spacer(modifier = Modifier.width(8.dp))
-            
-            IconButton(onClick = onRemove) {
+            // 削除ボタン（1枚削除）
+            IconButton(
+                onClick = onRemove,
+                modifier = Modifier.size(36.dp)
+            ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
-                    contentDescription = "削除",
+                    contentDescription = "1枚削除",
                     tint = MaterialTheme.colorScheme.error
                 )
+            }
+            
+            // 全削除ボタン（すべて削除）
+            if (count > 1) {
+                IconButton(
+                    onClick = onRemoveAll,
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "すべて削除",
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            text = "全て",
+                            fontSize = 10.sp,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
             }
         }
     }

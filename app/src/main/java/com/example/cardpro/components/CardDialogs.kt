@@ -42,6 +42,7 @@ fun AddCardDialog(
     var attack by remember { mutableStateOf("0") }
     var defense by remember { mutableStateOf("0") }
     var rarity by remember { mutableStateOf("コモン") }
+    var location by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
 
     val rarityOptions = listOf("コモン", "アンコモン", "レア", "レジェンダリー")
@@ -125,6 +126,16 @@ fun AddCardDialog(
                         }
                     }
                 }
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                // 保管場所の入力欄を追加
+                OutlinedTextField(
+                    value = location,
+                    onValueChange = { location = it },
+                    label = { Text("保管場所") },
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         },
         confirmButton = {
@@ -141,7 +152,8 @@ fun AddCardDialog(
                                 cost = costInt,
                                 attack = attackInt,
                                 defense = defenseInt,
-                                rarity = rarity
+                                rarity = rarity,
+                                location = location
                             )
                         )
                     }
@@ -173,6 +185,7 @@ fun EditCardDialog(
     var attack by remember { mutableStateOf(card.attack.toString()) }
     var defense by remember { mutableStateOf(card.defense.toString()) }
     var rarity by remember { mutableStateOf(card.rarity) }
+    var location by remember { mutableStateOf(card.location) }
     var expanded by remember { mutableStateOf(false) }
 
     val rarityOptions = listOf("コモン", "アンコモン", "レア", "レジェンダリー")
@@ -256,6 +269,16 @@ fun EditCardDialog(
                         }
                     }
                 }
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                // 保管場所の入力欄を追加
+                OutlinedTextField(
+                    value = location,
+                    onValueChange = { location = it },
+                    label = { Text("保管場所") },
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         },
         confirmButton = {
@@ -272,7 +295,8 @@ fun EditCardDialog(
                                 cost = costInt,
                                 attack = attackInt,
                                 defense = defenseInt,
-                                rarity = rarity
+                                rarity = rarity,
+                                location = location
                             )
                         )
                     }

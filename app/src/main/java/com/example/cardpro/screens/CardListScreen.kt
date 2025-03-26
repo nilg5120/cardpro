@@ -185,6 +185,15 @@ fun CardItem(
                     fontSize = 14.sp,
                     modifier = Modifier.padding(top = 4.dp)
                 )
+                
+                if (card.location.isNotBlank()) {
+                    Text(
+                        text = "保管場所: ${card.location}",
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(top = 2.dp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
             
             // 攻撃力と防御力

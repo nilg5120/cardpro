@@ -8,5 +8,6 @@ data class CardInfo(
     val cost: Int,
     val attack: Int,
     val defense: Int,
-    val rarity: String
+    val rarity: String,
+    val location: String = "" // カードの保管場所
 )

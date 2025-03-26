@@ -257,10 +257,11 @@ fun DeleteDeckDialog(
 @Composable
 fun AddCardToDeckDialog(
     onDismiss: () -> Unit,
-    onConfirm: (CardInfo) -> Unit,
+    onConfirm: (CardInfo, Int) -> Unit,
     cardViewModel: CardViewModel = viewModel()
 ) {
     var selectedCard by remember { mutableStateOf<CardInfo?>(null) }
+    var cardCount by remember { mutableStateOf(1) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -274,7 +275,7 @@ fun AddCardToDeckDialog(
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(300.dp)
+                        .height(250.dp)
                 ) {
                     items(cardViewModel.cards) { card ->
                         Card(
@@ -286,7 +287,11 @@ fun AddCardToDeckDialog(
                             Column(
                                 modifier = Modifier.padding(8.dp)
                             ) {
-                                Text(text = card.name)
+                                Text(
+                                    text = card.name,
+                                    fontWeight = if (selectedCard == card) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (selectedCard == card) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                )
                                 Text(
                                     text = "コスト: ${card.cost} | 攻撃: ${card.attack} | 防御: ${card.defense}",
                                     modifier = Modifier.padding(top = 4.dp)
@@ -295,12 +300,48 @@ fun AddCardToDeckDialog(
                         }
                     }
                 }
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                // カード枚数選択
+                if (selectedCard != null) {
+                    Text("追加する枚数を選択してください")
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Button(
+                            onClick = { if (cardCount > 1) cardCount-- },
+                            enabled = cardCount > 1
+                        ) {
+                            Text("-")
+                        }
+                        
+                        Text(
+                            text = "$cardCount",
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        
+                        Button(
+                            onClick = { if (cardCount < 4) cardCount++ },
+                            enabled = cardCount < 4
+                        ) {
+                            Text("+")
+                        }
+                    }
+                }
             }
         },
         confirmButton = {
             Button(
                 onClick = {
-                    selectedCard?.let { onConfirm(it) }
+                    selectedCard?.let { onConfirm(it, cardCount) }
                 },
                 enabled = selectedCard != null
             ) {
