@@ -1,13 +1,21 @@
 package com.example.cardpro.model
 
 /**
+ * カードとその保管場所の情報を表すデータクラス
+ */
+data class CardWithLocation(
+    val card: CardInfo,
+    val location: String
+)
+
+/**
  * デッキの情報を表すデータクラス
  */
 data class DeckInfo(
     val name: String,
     val description: String,
     val deckType: String,
-    val cards: Map<CardInfo, Int> = emptyMap()
+    val cards: Map<CardInfo, List<String>> = emptyMap()
 ) {
     // カードの種類数
     val cardTypeCount: Int
@@ -15,16 +23,21 @@ data class DeckInfo(
         
     // カードの総枚数を計算
     val cardCount: Int
-        get() = cards.values.sum()
+        get() = cards.values.sumOf { it.size }
         
-    // カードのリストを取得（同じカードが複数枚ある場合は複数回含まれる）
-    fun getCardList(): List<CardInfo> {
-        val result = mutableListOf<CardInfo>()
-        cards.forEach { (card, count) ->
-            repeat(count) {
-                result.add(card)
+    // カードと保管場所のペアのリストを取得
+    fun getCardWithLocations(): List<CardWithLocation> {
+        val result = mutableListOf<CardWithLocation>()
+        cards.forEach { (card, locations) ->
+            locations.forEach { location ->
+                result.add(CardWithLocation(card, location))
             }
         }
         return result
+    }
+    
+    // 特定のカードの枚数を取得
+    fun getCardCount(card: CardInfo): Int {
+        return cards[card]?.size ?: 0
     }
 }

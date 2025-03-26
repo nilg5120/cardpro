@@ -197,7 +197,7 @@ fun DeckDetailScreen(
                 if (viewModel.showAddCardDialog) {
                     AddCardToDeckDialog(
                         onDismiss = { viewModel.hideAddCardDialog() },
-                        onConfirm = { card, count -> viewModel.addCardToDeck(card, count) }
+                        onConfirm = { card, locations -> viewModel.addCardToDeck(card, locations) }
                     )
                 }
             } ?: run {
@@ -288,13 +288,22 @@ fun DeckCardItem(
                     modifier = Modifier.padding(top = 4.dp)
                 )
                 
-                if (card.location.isNotBlank()) {
-                    Text(
-                        text = "保管場所: ${card.location}",
-                        fontSize = 14.sp,
-                        modifier = Modifier.padding(top = 2.dp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                // 保管場所の表示
+                val locations = deck.cards[card] ?: emptyList()
+                if (locations.isNotEmpty()) {
+                    Column(
+                        modifier = Modifier.padding(top = 2.dp)
+                    ) {
+                        locations.forEachIndexed { index, location ->
+                            if (location.isNotBlank()) {
+                                Text(
+                                    text = "保管場所 ${index + 1}: $location",
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
                 }
             }
             

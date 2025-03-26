@@ -1,10 +1,15 @@
 package com.example.cardpro.components
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
@@ -14,6 +19,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -22,8 +28,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.cardpro.model.CardInfo
 import com.example.cardpro.model.DeckInfo
@@ -257,11 +266,12 @@ fun DeleteDeckDialog(
 @Composable
 fun AddCardToDeckDialog(
     onDismiss: () -> Unit,
-    onConfirm: (CardInfo, Int) -> Unit,
+    onConfirm: (CardInfo, List<String>) -> Unit,
     cardViewModel: CardViewModel = viewModel()
 ) {
     var selectedCard by remember { mutableStateOf<CardInfo?>(null) }
     var cardCount by remember { mutableStateOf(1) }
+    var locations by remember { mutableStateOf(List(1) { "" }) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -275,7 +285,7 @@ fun AddCardToDeckDialog(
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(250.dp)
+                        .height(200.dp)
                 ) {
                     items(cardViewModel.cards) { card ->
                         Card(
@@ -315,7 +325,12 @@ fun AddCardToDeckDialog(
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Button(
-                            onClick = { if (cardCount > 1) cardCount-- },
+                            onClick = { 
+                                if (cardCount > 1) {
+                                    cardCount--
+                                    locations = locations.dropLast(1)
+                                }
+                            },
                             enabled = cardCount > 1
                         ) {
                             Text("-")
@@ -329,10 +344,39 @@ fun AddCardToDeckDialog(
                         )
                         
                         Button(
-                            onClick = { if (cardCount < 4) cardCount++ },
+                            onClick = { 
+                                if (cardCount < 4) {
+                                    cardCount++
+                                    locations = locations + ""
+                                }
+                            },
                             enabled = cardCount < 4
                         ) {
                             Text("+")
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // 保管場所入力欄
+                    Text("各カードの保管場所を入力してください")
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Column {
+                        locations.forEachIndexed { index, location ->
+                            OutlinedTextField(
+                                value = location,
+                                onValueChange = { 
+                                    val newLocations = locations.toMutableList()
+                                    newLocations[index] = it
+                                    locations = newLocations
+                                },
+                                label = { Text("カード ${index + 1}の保管場所") },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
+                            )
                         }
                     }
                 }
@@ -341,7 +385,7 @@ fun AddCardToDeckDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    selectedCard?.let { onConfirm(it, cardCount) }
+                    selectedCard?.let { onConfirm(it, locations) }
                 },
                 enabled = selectedCard != null
             ) {

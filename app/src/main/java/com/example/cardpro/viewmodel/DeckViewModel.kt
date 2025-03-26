@@ -116,15 +116,16 @@ class DeckViewModel : ViewModel() {
     }
 
     /**
-     * デッキにカードを追加する
+     * デッキにカードを追加する（保管場所付き）
      */
-    fun addCardToDeck(card: CardInfo, count: Int = 1) {
+    fun addCardToDeck(card: CardInfo, locations: List<String>) {
         selectedDeck?.let { deck ->
             val index = _decks.indexOfFirst { it.name == deck.name }
             if (index != -1) {
                 val updatedCards = deck.cards.toMutableMap()
-                val currentCount = updatedCards[card] ?: 0
-                updatedCards[card] = currentCount + count
+                val currentLocations = updatedCards[card]?.toMutableList() ?: mutableListOf()
+                currentLocations.addAll(locations)
+                updatedCards[card] = currentLocations
                 
                 _decks[index] = deck.copy(cards = updatedCards)
                 // 選択中のデッキも更新
@@ -135,26 +136,31 @@ class DeckViewModel : ViewModel() {
     }
 
     /**
-     * デッキからカードを1枚削除する
+     * デッキからカードを1枚削除する（特定の保管場所のカードを削除）
      */
-    fun removeCardFromDeck(card: CardInfo) {
+    fun removeCardFromDeck(card: CardInfo, locationIndex: Int = 0) {
         selectedDeck?.let { deck ->
             val index = _decks.indexOfFirst { it.name == deck.name }
             if (index != -1) {
                 val updatedCards = deck.cards.toMutableMap()
-                val currentCount = updatedCards[card] ?: 0
+                val locations = updatedCards[card]?.toMutableList()
                 
-                if (currentCount > 1) {
-                    // 枚数が2枚以上なら1枚減らす
-                    updatedCards[card] = currentCount - 1
-                } else {
-                    // 1枚しかなければ削除
-                    updatedCards.remove(card)
+                if (locations != null && locations.isNotEmpty() && locationIndex < locations.size) {
+                    // 指定されたインデックスの保管場所を削除
+                    locations.removeAt(locationIndex)
+                    
+                    if (locations.isEmpty()) {
+                        // すべての保管場所が削除された場合はカード自体を削除
+                        updatedCards.remove(card)
+                    } else {
+                        // 更新された保管場所リストを設定
+                        updatedCards[card] = locations
+                    }
+                    
+                    _decks[index] = deck.copy(cards = updatedCards)
+                    // 選択中のデッキも更新
+                    _selectedDeck.value = _decks[index]
                 }
-                
-                _decks[index] = deck.copy(cards = updatedCards)
-                // 選択中のデッキも更新
-                _selectedDeck.value = _decks[index]
             }
         }
     }
