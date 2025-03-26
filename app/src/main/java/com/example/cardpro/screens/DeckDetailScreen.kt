@@ -184,8 +184,10 @@ fun DeckDetailScreen(
                                 val count = entry.value
                                 DeckCardItem(
                                     card = card,
-                                    count = count,
-                                    onRemove = { viewModel.removeCardFromDeck(card) },
+                                    count = count.size,
+                                    locations = count,
+                                    currentDeck = currentDeck,
+                                    onRemove = { locationIndex -> viewModel.removeCardFromDeck(card, locationIndex) },
                                     onRemoveAll = { viewModel.removeAllCardFromDeck(card) }
                                 )
                             }
@@ -220,7 +222,9 @@ fun DeckDetailScreen(
 fun DeckCardItem(
     card: CardInfo,
     count: Int,
-    onRemove: () -> Unit,
+    locations: List<String>,
+    currentDeck: DeckInfo,
+    onRemove: (Int) -> Unit,
     onRemoveAll: () -> Unit
 ) {
     Card(
@@ -289,7 +293,6 @@ fun DeckCardItem(
                 )
                 
                 // 保管場所の表示
-                val locations = deck.cards[card] ?: emptyList()
                 if (locations.isNotEmpty()) {
                     Column(
                         modifier = Modifier.padding(top = 2.dp)
@@ -332,15 +335,17 @@ fun DeckCardItem(
             }
             
             // 削除ボタン（1枚削除）
-            IconButton(
-                onClick = onRemove,
-                modifier = Modifier.size(36.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "1枚削除",
-                    tint = MaterialTheme.colorScheme.error
-                )
+            if (locations.isNotEmpty()) {
+                IconButton(
+                    onClick = { onRemove(0) },
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "1枚削除",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
             }
             
             // 全削除ボタン（すべて削除）
