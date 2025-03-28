@@ -123,9 +123,19 @@ class DeckViewModel : ViewModel() {
             val index = _decks.indexOfFirst { it.name == deck.name }
             if (index != -1) {
                 val updatedCards = deck.cards.toMutableMap()
-                val currentLocations = updatedCards[card]?.toMutableList() ?: mutableListOf()
-                currentLocations.addAll(locations)
-                updatedCards[card] = currentLocations
+                
+                // カードが既に存在するか確認
+                val existingCard = updatedCards.keys.find { it.id == card.id }
+                
+                if (existingCard != null) {
+                    // 既存のカードの場合は保管場所を追加
+                    val currentLocations = updatedCards[existingCard]?.toMutableList() ?: mutableListOf()
+                    currentLocations.addAll(locations)
+                    updatedCards[existingCard] = currentLocations
+                } else {
+                    // 新しいカードの場合は新規追加
+                    updatedCards[card] = locations
+                }
                 
                 _decks[index] = deck.copy(cards = updatedCards)
                 // 選択中のデッキも更新

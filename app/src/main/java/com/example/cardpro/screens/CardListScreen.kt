@@ -194,6 +194,15 @@ fun CardItem(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+                
+                if (card.memo.isNotBlank()) {
+                    Text(
+                        text = "メモ: ${card.memo}",
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(top = 2.dp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
             
             // 攻撃力と防御力

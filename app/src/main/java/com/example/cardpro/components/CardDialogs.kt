@@ -43,6 +43,7 @@ fun AddCardDialog(
     var defense by remember { mutableStateOf("0") }
     var rarity by remember { mutableStateOf("コモン") }
     var location by remember { mutableStateOf("") }
+    var memo by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
 
     val rarityOptions = listOf("コモン", "アンコモン", "レア", "レジェンダリー")
@@ -136,6 +137,16 @@ fun AddCardDialog(
                     label = { Text("保管場所") },
                     modifier = Modifier.fillMaxWidth()
                 )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                // メモの入力欄を追加
+                OutlinedTextField(
+                    value = memo,
+                    onValueChange = { memo = it },
+                    label = { Text("メモ") },
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         },
         confirmButton = {
@@ -153,7 +164,8 @@ fun AddCardDialog(
                                 attack = attackInt,
                                 defense = defenseInt,
                                 rarity = rarity,
-                                location = location
+                                location = location,
+                                memo = memo
                             )
                         )
                     }
@@ -186,6 +198,7 @@ fun EditCardDialog(
     var defense by remember { mutableStateOf(card.defense.toString()) }
     var rarity by remember { mutableStateOf(card.rarity) }
     var location by remember { mutableStateOf(card.location) }
+    var memo by remember { mutableStateOf(card.memo) }
     var expanded by remember { mutableStateOf(false) }
 
     val rarityOptions = listOf("コモン", "アンコモン", "レア", "レジェンダリー")
@@ -279,6 +292,16 @@ fun EditCardDialog(
                     label = { Text("保管場所") },
                     modifier = Modifier.fillMaxWidth()
                 )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                // メモの入力欄を追加
+                OutlinedTextField(
+                    value = memo,
+                    onValueChange = { memo = it },
+                    label = { Text("メモ") },
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         },
         confirmButton = {
@@ -291,12 +314,14 @@ fun EditCardDialog(
                     if (name.isNotBlank()) {
                         onConfirm(
                             CardInfo(
+                                id = card.id, // 既存のIDを保持
                                 name = name,
                                 cost = costInt,
                                 attack = attackInt,
                                 defense = defenseInt,
                                 rarity = rarity,
-                                location = location
+                                location = location,
+                                memo = memo
                             )
                         )
                     }

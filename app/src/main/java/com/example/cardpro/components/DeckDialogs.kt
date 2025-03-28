@@ -272,6 +272,11 @@ fun AddCardToDeckDialog(
     var selectedCard by remember { mutableStateOf<CardInfo?>(null) }
     var cardCount by remember { mutableStateOf(1) }
     var locations by remember { mutableStateOf(List(1) { "" }) }
+    
+    // 初期値が空の場合はデフォルト値を設定
+    if (locations.all { it.isEmpty() }) {
+        locations = List(cardCount) { "デフォルト" }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
