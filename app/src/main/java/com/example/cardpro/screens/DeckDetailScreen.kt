@@ -37,7 +37,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.cardpro.viewmodel.ViewModelProviderFactory
 import com.example.cardpro.components.AddCardToDeckDialog
 import com.example.cardpro.model.CardInfo
 import com.example.cardpro.model.DeckInfo
@@ -55,19 +57,22 @@ import com.example.cardpro.viewmodel.DeckViewModel
 fun DeckDetailScreen(
     deckId: String,
     onNavigateBack: () -> Unit = {},
-    viewModel: DeckViewModel = viewModel()
+    viewModel: DeckViewModel = viewModel(
+        factory = ViewModelProviderFactory.getDeckViewModelFactory(LocalContext.current)
+    )
 ) {
     // 選択されたデッキを取得
-    val deck = viewModel.decks.find { it.name == deckId }
+    val decks = viewModel.decks.value ?: emptyList()
+    val deck = decks.find { it.name == deckId }
     
     // デッキが見つかった場合のみ表示
     LaunchedEffect(deckId) {
-        deck?.let { 
-            viewModel.selectDeck(it)
+        deck?.let { foundDeck -> 
+            viewModel.selectDeck(foundDeck)
         } ?: run {
             // デッキが見つからない場合はログに出力
             println("デッキが見つかりません: $deckId")
-            println("利用可能なデッキ: ${viewModel.decks.map { it.name }}")
+            println("利用可能なデッキ: ${decks.map { deck -> deck.name }}")
         }
     }
     
@@ -193,7 +198,10 @@ fun DeckDetailScreen(
                                     count = count.size,
                                     locations = count,
                                     currentDeck = currentDeck,
-                                    onRemove = { locationIndex -> viewModel.removeCardFromDeck(card, locationIndex) },
+                                    onRemove = { locationIndex -> 
+                                        val location = count.getOrNull(locationIndex) ?: ""
+                                        viewModel.removeCardFromDeck(card, location) 
+                                    },
                                     onRemoveAll = { viewModel.removeAllCardFromDeck(card) }
                                 )
                             }

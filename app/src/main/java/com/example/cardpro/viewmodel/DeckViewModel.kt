@@ -1,18 +1,27 @@
 package com.example.cardpro.viewmodel
 
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.viewModelScope
+import com.example.cardpro.data.repository.CardRepository
+import com.example.cardpro.data.repository.DeckRepository
 import com.example.cardpro.model.CardInfo
+import com.example.cardpro.model.DeckCardLocation
 import com.example.cardpro.model.DeckInfo
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 /**
  * デッキデータを管理するViewModel
  */
-class DeckViewModel : ViewModel() {
+class DeckViewModel(
+    private val deckRepository: DeckRepository,
+    private val cardRepository: CardRepository
+) : ViewModel() {
     // デッキ一覧
-    private val _decks = mutableStateListOf<DeckInfo>()
-    val decks: List<DeckInfo> get() = _decks
+    val decks = deckRepository.getAllDecks().asLiveData()
 
     // 編集中のデッキ
     private val _currentDeck = mutableStateOf<DeckInfo?>(null)
@@ -21,6 +30,10 @@ class DeckViewModel : ViewModel() {
     // 選択中のデッキ（詳細表示用）
     private val _selectedDeck = mutableStateOf<DeckInfo?>(null)
     val selectedDeck get() = _selectedDeck.value
+
+    // 選択中のデッキに含まれるカード
+    private val _selectedDeckCards = mutableStateOf<Map<CardInfo, List<String>>>(emptyMap())
+    val selectedDeckCards get() = _selectedDeckCards.value
 
     // ダイアログの表示状態
     private val _showAddDialog = mutableStateOf(false)
@@ -38,8 +51,8 @@ class DeckViewModel : ViewModel() {
 
     init {
         // 初期データの設定
-        _decks.addAll(
-            listOf(
+        viewModelScope.launch {
+            val initialDecks = listOf(
                 DeckInfo(
                     name = "スタンダードデッキ",
                     description = "基本的なカードで構成された初心者向けデッキ",
@@ -66,14 +79,17 @@ class DeckViewModel : ViewModel() {
                     deckType = "コンボ型"
                 )
             )
-        )
+            deckRepository.insertDecks(initialDecks)
+        }
     }
 
     /**
      * デッキを追加する
      */
     fun addDeck(deck: DeckInfo) {
-        _decks.add(deck)
+        viewModelScope.launch {
+            deckRepository.insertDeck(deck)
+        }
         hideAddDialog()
     }
 
@@ -81,16 +97,18 @@ class DeckViewModel : ViewModel() {
      * デッキを更新する
      */
     fun updateDeck(deck: DeckInfo) {
-        val index = _decks.indexOfFirst { it.name == currentDeck?.name }
-        if (index != -1) {
-            // 現在のカードリストを保持
-            val currentCards = _decks[index].cards
-            // 更新時に現在のカードリストを引き継ぐ
-            _decks[index] = deck.copy(cards = currentCards)
-            
-            // 選択中のデッキが更新対象の場合、選択中のデッキも更新
-            if (_selectedDeck.value?.name == currentDeck?.name) {
-                _selectedDeck.value = _decks[index]
+        viewModelScope.launch {
+            // 現在のデッキIDを保持
+            currentDeck?.let { currentDeck ->
+                // 更新するデッキのIDを保持
+                val updatedDeck = deck.copy(id = currentDeck.id)
+                deckRepository.updateDeck(updatedDeck)
+                
+                // 選択中のデッキが更新対象の場合、選択中のデッキも更新
+                if (_selectedDeck.value?.id == currentDeck.id) {
+                    _selectedDeck.value = updatedDeck
+                    loadSelectedDeckCards()
+                }
             }
         }
         hideEditDialog()
@@ -101,7 +119,13 @@ class DeckViewModel : ViewModel() {
      */
     fun deleteDeck() {
         currentDeck?.let { deck ->
-            _decks.removeAll { it.name == deck.name }
+            viewModelScope.launch {
+                deckRepository.deleteDeck(deck)
+                if (_selectedDeck.value?.id == deck.id) {
+                    _selectedDeck.value = null
+                    _selectedDeckCards.value = emptyMap()
+                }
+            }
         }
         hideDeleteDialog()
     }
@@ -111,6 +135,7 @@ class DeckViewModel : ViewModel() {
      */
     fun selectDeck(deck: DeckInfo) {
         _selectedDeck.value = deck
+        loadSelectedDeckCards()
     }
 
     /**
@@ -118,6 +143,35 @@ class DeckViewModel : ViewModel() {
      */
     fun clearSelectedDeck() {
         _selectedDeck.value = null
+        _selectedDeckCards.value = emptyMap()
+    }
+
+    /**
+     * 選択中のデッキに含まれるカードを読み込む
+     */
+    private fun loadSelectedDeckCards() {
+        selectedDeck?.let { deck ->
+            viewModelScope.launch {
+                val deckWithCards = deckRepository.getDeckWithCards(deck.id)
+                val cardLocations = deckRepository.getDeckCardLocations(deck.id).map { locations ->
+                    // カードIDごとに保管場所をグループ化
+                    val cardLocationMap = locations.groupBy { it.cardId }
+                    val result = mutableMapOf<CardInfo, List<String>>()
+                    
+                    // 各カードIDに対応するカード情報を取得
+                    cardLocationMap.forEach { (cardId, locationList) ->
+                        val card = cardRepository.getCardById(cardId)
+                        card?.let {
+                            result[it] = locationList.map { it.location }
+                        }
+                    }
+                    
+                    result
+                }.asLiveData().value ?: emptyMap()
+                
+                _selectedDeckCards.value = cardLocations
+            }
+        }
     }
 
     /**
@@ -125,26 +179,19 @@ class DeckViewModel : ViewModel() {
      */
     fun addCardToDeck(card: CardInfo, locations: List<String>) {
         selectedDeck?.let { deck ->
-            val index = _decks.indexOfFirst { it.name == deck.name }
-            if (index != -1) {
-                val updatedCards = deck.cards.toMutableMap()
-                
-                // カードが既に存在するか確認
-                val existingCard = updatedCards.keys.find { it.id == card.id }
-                
-                if (existingCard != null) {
-                    // 既存のカードの場合は保管場所を追加
-                    val currentLocations = updatedCards[existingCard]?.toMutableList() ?: mutableListOf()
-                    currentLocations.addAll(locations)
-                    updatedCards[existingCard] = currentLocations
-                } else {
-                    // 新しいカードの場合は新規追加
-                    updatedCards[card] = locations
+            viewModelScope.launch {
+                // カードが存在しない場合は追加
+                if (cardRepository.getCardById(card.id) == null) {
+                    cardRepository.insertCard(card)
                 }
                 
-                _decks[index] = deck.copy(cards = updatedCards)
-                // 選択中のデッキも更新
-                _selectedDeck.value = _decks[index]
+                // デッキとカードの関連付けを追加
+                locations.forEach { location ->
+                    deckRepository.addCardToDeck(deck.id, card.id, location)
+                }
+                
+                // 選択中のデッキのカードを再読み込み
+                loadSelectedDeckCards()
             }
         }
         hideAddCardDialog()
@@ -153,29 +200,12 @@ class DeckViewModel : ViewModel() {
     /**
      * デッキからカードを1枚削除する（特定の保管場所のカードを削除）
      */
-    fun removeCardFromDeck(card: CardInfo, locationIndex: Int = 0) {
+    fun removeCardFromDeck(card: CardInfo, location: String) {
         selectedDeck?.let { deck ->
-            val index = _decks.indexOfFirst { it.name == deck.name }
-            if (index != -1) {
-                val updatedCards = deck.cards.toMutableMap()
-                val locations = updatedCards[card]?.toMutableList()
-                
-                if (locations != null && locations.isNotEmpty() && locationIndex < locations.size) {
-                    // 指定されたインデックスの保管場所を削除
-                    locations.removeAt(locationIndex)
-                    
-                    if (locations.isEmpty()) {
-                        // すべての保管場所が削除された場合はカード自体を削除
-                        updatedCards.remove(card)
-                    } else {
-                        // 更新された保管場所リストを設定
-                        updatedCards[card] = locations
-                    }
-                    
-                    _decks[index] = deck.copy(cards = updatedCards)
-                    // 選択中のデッキも更新
-                    _selectedDeck.value = _decks[index]
-                }
+            viewModelScope.launch {
+                deckRepository.removeCardLocationFromDeck(deck.id, card.id, location)
+                // 選択中のデッキのカードを再読み込み
+                loadSelectedDeckCards()
             }
         }
     }
@@ -185,14 +215,10 @@ class DeckViewModel : ViewModel() {
      */
     fun removeAllCardFromDeck(card: CardInfo) {
         selectedDeck?.let { deck ->
-            val index = _decks.indexOfFirst { it.name == deck.name }
-            if (index != -1) {
-                val updatedCards = deck.cards.toMutableMap()
-                updatedCards.remove(card)
-                
-                _decks[index] = deck.copy(cards = updatedCards)
-                // 選択中のデッキも更新
-                _selectedDeck.value = _decks[index]
+            viewModelScope.launch {
+                deckRepository.removeCardFromDeck(deck.id, card.id)
+                // 選択中のデッキのカードを再読み込み
+                loadSelectedDeckCards()
             }
         }
     }
@@ -255,5 +281,26 @@ class DeckViewModel : ViewModel() {
      */
     fun hideAddCardDialog() {
         _showAddCardDialog.value = false
+    }
+    
+    /**
+     * 特定のデッキタイプのデッキを取得
+     */
+    fun getDecksByType(deckType: String) = deckRepository.getDecksByType(deckType).asLiveData()
+    
+    /**
+     * ViewModelファクトリ
+     */
+    class DeckViewModelFactory(
+        private val deckRepository: DeckRepository,
+        private val cardRepository: CardRepository
+    ) : ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(DeckViewModel::class.java)) {
+                @Suppress("UNCHECKED_CAST")
+                return DeckViewModel(deckRepository, cardRepository) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class")
+        }
     }
 }

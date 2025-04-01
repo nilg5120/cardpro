@@ -42,7 +42,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.cardpro.viewmodel.ViewModelProviderFactory
 import com.example.cardpro.components.AddCardDialog
 import com.example.cardpro.components.DeleteCardDialog
 import com.example.cardpro.components.EditCardDialog
@@ -59,7 +61,9 @@ import com.example.cardpro.viewmodel.CardViewModel
 @Composable
 fun CardListScreen(
     onNavigateBack: () -> Unit = {},
-    viewModel: CardViewModel = viewModel()
+    viewModel: CardViewModel = viewModel(
+        factory = ViewModelProviderFactory.getCardViewModelFactory(LocalContext.current)
+    )
 ) {
     Scaffold(
         topBar = {
@@ -96,7 +100,8 @@ fun CardListScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(viewModel.cards) { card ->
+                val cards = viewModel.cards.value ?: emptyList()
+                items(cards) { card ->
                     CardItem(
                         card = card,
                         onEdit = { viewModel.showEditDialog(card) },

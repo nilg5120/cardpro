@@ -1,17 +1,24 @@
 package com.example.cardpro.viewmodel
 
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.viewModelScope
+import com.example.cardpro.data.repository.CardRepository
 import com.example.cardpro.model.CardInfo
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 /**
  * カードデータを管理するViewModel
  */
-class CardViewModel : ViewModel() {
+class CardViewModel(private val repository: CardRepository) : ViewModel() {
     // カード一覧
-    private val _cards = mutableStateListOf<CardInfo>()
-    val cards: List<CardInfo> get() = _cards
+    private val _cardsFlow = repository.getAllCards().asLiveData()
+    val cards get() = _cardsFlow
 
     // 編集中のカード
     private val _currentCard = mutableStateOf<CardInfo?>(null)
@@ -27,10 +34,11 @@ class CardViewModel : ViewModel() {
     private val _showDeleteDialog = mutableStateOf(false)
     val showDeleteDialog get() = _showDeleteDialog.value
 
+    // 初期データの設定
     init {
-        // 初期データの設定
-        _cards.addAll(
-            listOf(
+        // データベースが空の場合は初期データを追加
+        viewModelScope.launch {
+            val initialCards = listOf(
                 CardInfo(name = "ドラゴンナイト", cost = 5, attack = 4, defense = 5, rarity = "レア"),
                 CardInfo(name = "ゴブリン", cost = 1, attack = 1, defense = 1, rarity = "コモン"),
                 CardInfo(name = "エルフの弓使い", cost = 2, attack = 2, defense = 1, rarity = "コモン"),
@@ -42,14 +50,17 @@ class CardViewModel : ViewModel() {
                 CardInfo(name = "雷の精霊", cost = 4, attack = 4, defense = 3, rarity = "アンコモン"),
                 CardInfo(name = "古代の竜", cost = 10, attack = 10, defense = 10, rarity = "レジェンダリー")
             )
-        )
+            repository.insertCards(initialCards)
+        }
     }
 
     /**
      * カードを追加する
      */
     fun addCard(card: CardInfo) {
-        _cards.add(card)
+        viewModelScope.launch {
+            repository.insertCard(card)
+        }
         hideAddDialog()
     }
 
@@ -57,9 +68,8 @@ class CardViewModel : ViewModel() {
      * カードを更新する
      */
     fun updateCard(card: CardInfo) {
-        val index = _cards.indexOfFirst { it.name == currentCard?.name }
-        if (index != -1) {
-            _cards[index] = card
+        viewModelScope.launch {
+            repository.updateCard(card)
         }
         hideEditDialog()
     }
@@ -69,7 +79,9 @@ class CardViewModel : ViewModel() {
      */
     fun deleteCard() {
         currentCard?.let { card ->
-            _cards.removeAll { it.name == card.name }
+            viewModelScope.launch {
+                repository.deleteCard(card)
+            }
         }
         hideDeleteDialog()
     }
@@ -118,5 +130,28 @@ class CardViewModel : ViewModel() {
     fun hideDeleteDialog() {
         _showDeleteDialog.value = false
         _currentCard.value = null
+    }
+    
+    /**
+     * レアリティでカードを検索
+     */
+    fun getCardsByRarity(rarity: String) = repository.getCardsByRarity(rarity).asLiveData()
+    
+    /**
+     * コストでカードを検索
+     */
+    fun getCardsByCost(cost: Int) = repository.getCardsByCost(cost).asLiveData()
+    
+    /**
+     * ViewModelファクトリ
+     */
+    class CardViewModelFactory(private val repository: CardRepository) : ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(CardViewModel::class.java)) {
+                @Suppress("UNCHECKED_CAST")
+                return CardViewModel(repository) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class")
+        }
     }
 }

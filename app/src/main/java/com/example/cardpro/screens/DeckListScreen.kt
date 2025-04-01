@@ -41,7 +41,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.cardpro.viewmodel.ViewModelProviderFactory
 import com.example.cardpro.components.AddDeckDialog
 import com.example.cardpro.components.DeleteDeckDialog
 import com.example.cardpro.components.EditDeckDialog
@@ -60,7 +62,9 @@ import com.example.cardpro.viewmodel.DeckViewModel
 fun DeckListScreen(
     onNavigateBack: () -> Unit = {},
     onDeckClick: (DeckInfo) -> Unit = {},
-    viewModel: DeckViewModel = viewModel()
+    viewModel: DeckViewModel = viewModel(
+        factory = ViewModelProviderFactory.getDeckViewModelFactory(LocalContext.current)
+    )
 ) {
     Scaffold(
         topBar = {
@@ -97,7 +101,8 @@ fun DeckListScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(viewModel.decks) { deck ->
+                val decks = viewModel.decks.value ?: emptyList()
+                items(decks) { deck ->
                 DeckItem(
                     deck = deck,
                     onClick = { onDeckClick(deck) },
