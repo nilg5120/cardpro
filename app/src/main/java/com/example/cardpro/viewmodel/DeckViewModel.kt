@@ -87,6 +87,11 @@ class DeckViewModel : ViewModel() {
             val currentCards = _decks[index].cards
             // 更新時に現在のカードリストを引き継ぐ
             _decks[index] = deck.copy(cards = currentCards)
+            
+            // 選択中のデッキが更新対象の場合、選択中のデッキも更新
+            if (_selectedDeck.value?.name == currentDeck?.name) {
+                _selectedDeck.value = _decks[index]
+            }
         }
         hideEditDialog()
     }

@@ -1,0 +1,50 @@
+{
+    // IntelliSense を使用して利用可能な属性を学べます。
+    // 既存の属性の説明をホバーして表示します。
+    // 詳細情報は次を確認してください: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python デバッガー: 現在のファイル",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Android App",
+            "type": "android",
+            "request": "launch",
+            "apkFile": "${workspaceRoot}/app/build/outputs/apk/debug/app-debug.apk",
+            "appSrcRoot": "${workspaceRoot}/app/src/main"
+        },
+        {
+            "name": "Run Android on device",
+            "type": "chrome",
+            "request": "launch",
+            "port": 9222,
+            "sourceMaps": true,
+            "cwd": "${workspaceRoot}"
+        },
+        {
+            "name": "Run Android on emulator",
+            "type": "chrome",
+            "request": "launch",
+            "port": 9222,
+            "sourceMaps": true,
+            "cwd": "${workspaceRoot}"
+        },
+        {
+            "name": "Gradle-Android: installDebug",
+            "type": "java",
+            "request": "launch",
+            "mainClass": "com.example.cardpro.MainActivity"
+        },
+        {
+            "name": "Gradle-Android: assembleDebug",
+            "type": "java",
+            "request": "launch",
+            "mainClass": "com.example.cardpro.MainActivity"
+        }
+    ]
+}

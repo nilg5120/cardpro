@@ -31,16 +31,16 @@ class CardViewModel : ViewModel() {
         // 初期データの設定
         _cards.addAll(
             listOf(
-                CardInfo("ドラゴンナイト", 5, 4, 5, "レア"),
-                CardInfo("ゴブリン", 1, 1, 1, "コモン"),
-                CardInfo("エルフの弓使い", 2, 2, 1, "コモン"),
-                CardInfo("炎の魔術師", 3, 2, 3, "アンコモン"),
-                CardInfo("聖なる騎士", 4, 3, 4, "レア"),
-                CardInfo("暗黒の魔王", 8, 8, 8, "レジェンダリー"),
-                CardInfo("癒しの妖精", 2, 1, 2, "コモン"),
-                CardInfo("巨大ゴーレム", 6, 5, 7, "レア"),
-                CardInfo("雷の精霊", 4, 4, 3, "アンコモン"),
-                CardInfo("古代の竜", 10, 10, 10, "レジェンダリー")
+                CardInfo(name = "ドラゴンナイト", cost = 5, attack = 4, defense = 5, rarity = "レア"),
+                CardInfo(name = "ゴブリン", cost = 1, attack = 1, defense = 1, rarity = "コモン"),
+                CardInfo(name = "エルフの弓使い", cost = 2, attack = 2, defense = 1, rarity = "コモン"),
+                CardInfo(name = "炎の魔術師", cost = 3, attack = 2, defense = 3, rarity = "アンコモン"),
+                CardInfo(name = "聖なる騎士", cost = 4, attack = 3, defense = 4, rarity = "レア"),
+                CardInfo(name = "暗黒の魔王", cost = 8, attack = 8, defense = 8, rarity = "レジェンダリー"),
+                CardInfo(name = "癒しの妖精", cost = 2, attack = 1, defense = 2, rarity = "コモン"),
+                CardInfo(name = "巨大ゴーレム", cost = 6, attack = 5, defense = 7, rarity = "レア"),
+                CardInfo(name = "雷の精霊", cost = 4, attack = 4, defense = 3, rarity = "アンコモン"),
+                CardInfo(name = "古代の竜", cost = 10, attack = 10, defense = 10, rarity = "レジェンダリー")
             )
         )
     }

@@ -62,7 +62,13 @@ fun DeckDetailScreen(
     
     // デッキが見つかった場合のみ表示
     LaunchedEffect(deckId) {
-        deck?.let { viewModel.selectDeck(it) }
+        deck?.let { 
+            viewModel.selectDeck(it)
+        } ?: run {
+            // デッキが見つからない場合はログに出力
+            println("デッキが見つかりません: $deckId")
+            println("利用可能なデッキ: ${viewModel.decks.map { it.name }}")
+        }
     }
     
     Scaffold(
