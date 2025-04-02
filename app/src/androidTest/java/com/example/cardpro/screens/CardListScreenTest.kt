@@ -2,7 +2,6 @@ package com.example.cardpro.screens
 
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
-import com.example.cardpro.model.CardInfo
 import com.example.cardpro.viewmodel.CardViewModel
 import org.junit.Before
 import org.junit.Rule

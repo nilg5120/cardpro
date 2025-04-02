@@ -7,9 +7,6 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.cardpro.data.repository.CardRepository
 import com.example.cardpro.model.CardInfo
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
@@ -131,17 +128,7 @@ class CardViewModel(private val repository: CardRepository) : ViewModel() {
         _showDeleteDialog.value = false
         _currentCard.value = null
     }
-    
-    /**
-     * レアリティでカードを検索
-     */
-    fun getCardsByRarity(rarity: String) = repository.getCardsByRarity(rarity).asLiveData()
-    
-    /**
-     * コストでカードを検索
-     */
-    fun getCardsByCost(cost: Int) = repository.getCardsByCost(cost).asLiveData()
-    
+
     /**
      * ViewModelファクトリ
      */

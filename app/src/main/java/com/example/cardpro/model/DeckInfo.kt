@@ -35,12 +35,10 @@ data class DeckInfo(
     ) : this(id, name, description, deckType, emptyMap())
     
     // カードの種類数
-    @Ignore
     val cardTypeCount: Int
         get() = cards.size
         
     // カードの総枚数を計算
-    @Ignore
     val cardCount: Int
         get() = cards.values.sumOf { it.size }
         

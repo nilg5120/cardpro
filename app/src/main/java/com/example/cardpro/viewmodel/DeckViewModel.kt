@@ -8,7 +8,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.cardpro.data.repository.CardRepository
 import com.example.cardpro.data.repository.DeckRepository
 import com.example.cardpro.model.CardInfo
-import com.example.cardpro.model.DeckCardLocation
 import com.example.cardpro.model.DeckInfo
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -33,7 +32,6 @@ class DeckViewModel(
 
     // 選択中のデッキに含まれるカード
     private val _selectedDeckCards = mutableStateOf<Map<CardInfo, List<String>>>(emptyMap())
-    val selectedDeckCards get() = _selectedDeckCards.value
 
     // ダイアログの表示状態
     private val _showAddDialog = mutableStateOf(false)
@@ -89,8 +87,8 @@ class DeckViewModel(
     fun addDeck(deck: DeckInfo) {
         viewModelScope.launch {
             deckRepository.insertDeck(deck)
+            hideAddDialog()
         }
-        hideAddDialog()
     }
 
     /**
@@ -110,8 +108,8 @@ class DeckViewModel(
                     loadSelectedDeckCards()
                 }
             }
+            hideEditDialog()
         }
-        hideEditDialog()
     }
 
     /**
@@ -125,9 +123,9 @@ class DeckViewModel(
                     _selectedDeck.value = null
                     _selectedDeckCards.value = emptyMap()
                 }
+                hideDeleteDialog()
             }
         }
-        hideDeleteDialog()
     }
 
     /**
@@ -152,7 +150,7 @@ class DeckViewModel(
     private fun loadSelectedDeckCards() {
         selectedDeck?.let { deck ->
             viewModelScope.launch {
-                val deckWithCards = deckRepository.getDeckWithCards(deck.id)
+                deckRepository.getDeckWithCards(deck.id)
                 val cardLocations = deckRepository.getDeckCardLocations(deck.id).map { locations ->
                     // カードIDごとに保管場所をグループ化
                     val cardLocationMap = locations.groupBy { it.cardId }
@@ -192,9 +190,11 @@ class DeckViewModel(
                 
                 // 選択中のデッキのカードを再読み込み
                 loadSelectedDeckCards()
+                
+                // ダイアログを閉じる
+                hideAddCardDialog()
             }
         }
-        hideAddCardDialog()
     }
 
     /**
@@ -282,12 +282,7 @@ class DeckViewModel(
     fun hideAddCardDialog() {
         _showAddCardDialog.value = false
     }
-    
-    /**
-     * 特定のデッキタイプのデッキを取得
-     */
-    fun getDecksByType(deckType: String) = deckRepository.getDecksByType(deckType).asLiveData()
-    
+
     /**
      * ViewModelファクトリ
      */

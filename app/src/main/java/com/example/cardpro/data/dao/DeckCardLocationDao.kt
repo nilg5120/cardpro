@@ -5,8 +5,6 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Transaction
-import com.example.cardpro.model.CardInfo
 import com.example.cardpro.model.DeckCardLocation
 import kotlinx.coroutines.flow.Flow
 
@@ -38,13 +36,7 @@ interface DeckCardLocationDao {
      */
     @Query("SELECT DISTINCT cardId FROM deck_card_locations WHERE deckId = :deckId")
     suspend fun getCardIdsInDeck(deckId: String): List<String>
-    
-    /**
-     * 特定のデッキと特定のカードの関連付けをすべて取得
-     */
-    @Query("SELECT * FROM deck_card_locations WHERE deckId = :deckId AND cardId = :cardId")
-    suspend fun getDeckCardLocationsForCard(deckId: String, cardId: String): List<DeckCardLocation>
-    
+
     /**
      * 特定のデッキと特定のカードの関連付けを削除
      */
