@@ -2,6 +2,7 @@ package com.example.cardpro.model
 
 import androidx.room.Entity
 import androidx.room.Ignore
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.util.UUID
 
@@ -64,7 +65,11 @@ data class DeckInfo(
  */
 @Entity(
     tableName = "deck_card_locations",
-    primaryKeys = ["deckId", "cardId", "location"]
+    primaryKeys = ["deckId", "cardId", "location"],
+    indices = [
+        Index(value = ["cardId"]),  // cardId のインデックス
+        Index(value = ["deckId"])   // deckId のインデックス (JOIN で使う場合)
+    ]
 )
 data class DeckCardLocation(
     val deckId: String,

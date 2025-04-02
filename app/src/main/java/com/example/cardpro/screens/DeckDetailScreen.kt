@@ -30,20 +30,22 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.cardpro.viewmodel.ViewModelProviderFactory
 import com.example.cardpro.components.AddCardToDeckDialog
 import com.example.cardpro.model.CardInfo
 import com.example.cardpro.model.DeckInfo
 import com.example.cardpro.viewmodel.DeckViewModel
+import com.example.cardpro.viewmodel.ViewModelProviderFactory
 
 /**
  * デッキ詳細画面
@@ -62,8 +64,9 @@ fun DeckDetailScreen(
     )
 ) {
     // 選択されたデッキを取得
-    val decks = viewModel.decks.value ?: emptyList()
+    val decks by viewModel.decks.observeAsState(emptyList())
     val deck = decks.find { it.id == deckId || it.name == deckId }
+
     
     // デッキが見つかった場合のみ表示
     LaunchedEffect(deckId) {

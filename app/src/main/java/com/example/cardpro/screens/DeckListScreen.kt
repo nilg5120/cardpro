@@ -31,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -97,8 +98,8 @@ fun DeckListScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            val decks = viewModel.decks.value ?: emptyList()
-            
+            val decks by viewModel.decks.observeAsState(emptyList())
+
             if (decks.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -126,8 +127,8 @@ fun DeckListScreen(
                     }
                 }
             }
-            
-            // 追加ダイアログ
+
+        // 追加ダイアログ
             if (viewModel.showAddDialog) {
                 AddDeckDialog(
                     onDismiss = { viewModel.hideAddDialog() },
