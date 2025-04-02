@@ -37,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -96,19 +97,33 @@ fun DeckListScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                val decks = viewModel.decks.value ?: emptyList()
-                items(decks) { deck ->
-                DeckItem(
-                    deck = deck,
-                    onClick = { onDeckClick(deck) },
-                    onEdit = { viewModel.showEditDialog(deck) },
-                    onDelete = { viewModel.showDeleteDialog(deck) }
-                )
+            val decks = viewModel.decks.value ?: emptyList()
+            
+            if (decks.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "デッキがありません\n右下の+ボタンからデッキを追加してください",
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(decks) { deck ->
+                        DeckItem(
+                            deck = deck,
+                            onClick = { onDeckClick(deck) },
+                            onEdit = { viewModel.showEditDialog(deck) },
+                            onDelete = { viewModel.showDeleteDialog(deck) }
+                        )
+                    }
                 }
             }
             

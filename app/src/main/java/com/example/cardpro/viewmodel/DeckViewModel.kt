@@ -150,8 +150,11 @@ class DeckViewModel(
     private fun loadSelectedDeckCards() {
         selectedDeck?.let { deck ->
             viewModelScope.launch {
-                deckRepository.getDeckWithCards(deck.id)
-                val cardLocations = deckRepository.getDeckCardLocations(deck.id).map { locations ->
+                // デッキとカードの関連付けを取得
+                val deckWithCards = deckRepository.getDeckWithCards(deck.id)
+                
+                // デッキとカードの保管場所の関連付けを取得
+                deckRepository.getDeckCardLocations(deck.id).collect { locations ->
                     // カードIDごとに保管場所をグループ化
                     val cardLocationMap = locations.groupBy { it.cardId }
                     val result = mutableMapOf<CardInfo, List<String>>()
@@ -164,10 +167,9 @@ class DeckViewModel(
                         }
                     }
                     
-                    result
-                }.asLiveData().value ?: emptyMap()
-                
-                _selectedDeckCards.value = cardLocations
+                    // 結果を更新
+                    _selectedDeckCards.value = result
+                }
             }
         }
     }

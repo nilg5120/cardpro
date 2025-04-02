@@ -63,7 +63,7 @@ fun DeckDetailScreen(
 ) {
     // 選択されたデッキを取得
     val decks = viewModel.decks.value ?: emptyList()
-    val deck = decks.find { it.name == deckId }
+    val deck = decks.find { it.id == deckId || it.name == deckId }
     
     // デッキが見つかった場合のみ表示
     LaunchedEffect(deckId) {
@@ -72,7 +72,7 @@ fun DeckDetailScreen(
         } ?: run {
             // デッキが見つからない場合はログに出力
             println("デッキが見つかりません: $deckId")
-            println("利用可能なデッキ: ${decks.map { deck -> deck.name }}")
+            println("利用可能なデッキ: ${decks.map { deck -> "${deck.id} (${deck.name})" }}")
         }
     }
     
