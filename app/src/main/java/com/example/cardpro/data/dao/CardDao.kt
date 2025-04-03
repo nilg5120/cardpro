@@ -21,7 +21,19 @@ interface CardDao {
      */
     @Query("SELECT * FROM cards ORDER BY name ASC")
     fun getAllCards(): Flow<List<CardInfo>>
-    
+
+
+    /**
+     * すべてのカードを取得 (同じ名前のカードはまとめ、枚数も取得)
+     */
+    @Query("""
+        SELECT *, COUNT(*) AS count 
+        FROM cards 
+        GROUP BY name 
+        ORDER BY name ASC
+    """)
+    fun getAllCardsGroupedByName(): Flow<List<CardInfo>>
+
     /**
      * 特定のIDのカードを取得
      */

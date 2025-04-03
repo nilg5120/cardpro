@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
  */
 class CardViewModel(private val repository: CardRepository) : ViewModel() {
     // カード一覧
-    private val _cardsFlow = repository.getAllCards().asLiveData()
+    private val _cardsFlow = repository.getAllCardsGroupedByName().asLiveData()
     val cards get() = _cardsFlow
 
     // 編集中のカード

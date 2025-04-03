@@ -1,6 +1,7 @@
 package com.example.cardpro.model
 
 import androidx.room.Entity
+import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import java.util.UUID
 
@@ -17,5 +18,7 @@ data class CardInfo(
     val defense: Int,
     val rarity: String,
     val location: String = "", // カードの保管場所
-    val memo: String = "" // カードに関するメモ
+    val memo: String = "", // カードに関するメモ
+    @Ignore
+    val count: Int = 1 // カードの枚数（デフォルトは1枚）
 )

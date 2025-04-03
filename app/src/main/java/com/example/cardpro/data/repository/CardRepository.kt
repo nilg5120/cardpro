@@ -13,6 +13,11 @@ class CardRepository(private val cardDao: CardDao) {
      * すべてのカードを取得
      */
     fun getAllCards(): Flow<List<CardInfo>> = cardDao.getAllCards()
+
+    /**
+     * すべてのカードを取得 (同じ名前のカードはまとめ、枚数も取得)
+     */
+    fun getAllCardsGroupedByName(): Flow<List<CardInfo>> = cardDao.getAllCardsGroupedByName()
     
     /**
      * 特定のIDのカードを取得

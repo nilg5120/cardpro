@@ -180,11 +180,24 @@ fun CardItem(
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-                Text(
-                    text = card.name,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = card.name,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    if (card.count > 1) {
+                        Text(
+                            text = " × ${card.count}",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(start = 4.dp)
+                        )
+                    }
+                }
                 Text(
                     text = "レアリティ: ${card.rarity}",
                     fontSize = 14.sp,
