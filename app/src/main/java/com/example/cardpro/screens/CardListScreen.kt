@@ -46,7 +46,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.cardpro.components.AddCardDialog
 import com.example.cardpro.components.DeleteCardDialog
 import com.example.cardpro.components.EditCardDialog
-import com.example.cardpro.model.CardInfo
+import com.example.cardpro.model.GroupedCardInfo
 import com.example.cardpro.ui.theme.CardproTheme
 import com.example.cardpro.viewmodel.CardViewModel
 import com.example.cardpro.viewmodel.ViewModelProviderFactory
@@ -94,7 +94,7 @@ fun CardListScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            val cards by viewModel.cards.observeAsState(emptyList())
+            val cards by viewModel.uiCardList.observeAsState(emptyList())
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -123,6 +123,7 @@ fun CardListScreen(
                 if (viewModel.showEditDialog) {
                     EditCardDialog(
                         card = card,
+                        cards = viewModel.currentCards,
                         onDismiss = { viewModel.hideEditDialog() },
                         onConfirm = { viewModel.updateCard(it) }
                     )
@@ -143,7 +144,7 @@ fun CardListScreen(
 
 @Composable
 fun CardItem(
-    card: CardInfo,
+    card: GroupedCardInfo,
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -207,6 +208,15 @@ fun CardItem(
                 if (card.location.isNotBlank()) {
                     Text(
                         text = "保管場所: ${card.location}",
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(top = 2.dp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                if (card.count > 1) {
+                    Text(
+                        text = "枚数: ${card.count}",
                         fontSize = 14.sp,
                         modifier = Modifier.padding(top = 2.dp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant

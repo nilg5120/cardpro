@@ -2,6 +2,7 @@ package com.example.cardpro.data.repository
 
 import com.example.cardpro.data.dao.CardDao
 import com.example.cardpro.model.CardInfo
+import com.example.cardpro.model.GroupedCardInfo
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -17,7 +18,7 @@ class CardRepository(private val cardDao: CardDao) {
     /**
      * すべてのカードを取得 (同じ名前のカードはまとめ、枚数も取得)
      */
-    fun getAllCardsGroupedByName(): Flow<List<CardInfo>> = cardDao.getAllCardsGroupedByName()
+    fun getAllCardsGroupedByName(): Flow<List<GroupedCardInfo>> = cardDao.getAllCardsGroupedByName()
     
     /**
      * 特定のIDのカードを取得
@@ -43,5 +44,10 @@ class CardRepository(private val cardDao: CardDao) {
      * カードを削除
      */
     suspend fun deleteCard(card: CardInfo) = cardDao.deleteCard(card)
+    
+    /**
+     * 名前でカードを検索
+     */
+    suspend fun getCardsByName(name: String): List<CardInfo> = cardDao.getCardsByName(name)
 
 }

@@ -188,9 +188,13 @@ fun AddCardDialog(
 @Composable
 fun EditCardDialog(
     card: CardInfo,
+    cards: List<CardInfo> = emptyList(),
     onDismiss: () -> Unit,
     onConfirm: (CardInfo) -> Unit
 ) {
+    var selectedCardIndex by remember { mutableStateOf(0) }
+    var selectedCard by remember { mutableStateOf(card) }
+    
     var name by remember { mutableStateOf(card.name) }
     var cost by remember { mutableStateOf(card.cost.toString()) }
     var attack by remember { mutableStateOf(card.attack.toString()) }
@@ -199,6 +203,7 @@ fun EditCardDialog(
     var location by remember { mutableStateOf(card.location) }
     var memo by remember { mutableStateOf(card.memo) }
     var expanded by remember { mutableStateOf(false) }
+    var cardExpanded by remember { mutableStateOf(false) }
 
     val rarityOptions = listOf("コモン", "アンコモン", "レア", "レジェンダリー")
 
@@ -207,6 +212,54 @@ fun EditCardDialog(
         title = { Text("カードを編集") },
         text = {
             Column {
+                // 同じ名前のカードが複数ある場合、選択ドロップダウンを表示
+                if (cards.size > 1) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    ExposedDropdownMenuBox(
+                        expanded = cardExpanded,
+                        onExpandedChange = { cardExpanded = it }
+                    ) {
+                        OutlinedTextField(
+                            value = "カード ${selectedCardIndex + 1} (ID: ${selectedCard.id.take(8)}...)",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("編集するカード") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = cardExpanded) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .menuAnchor()
+                        )
+
+                        ExposedDropdownMenu(
+                            expanded = cardExpanded,
+                            onDismissRequest = { cardExpanded = false }
+                        ) {
+                            cards.forEachIndexed { index, cardItem ->
+                                DropdownMenuItem(
+                                    text = { 
+                                        Text("カード ${index + 1} (ID: ${cardItem.id.take(8)}...) - ${if (cardItem.location.isNotBlank()) "保管場所: ${cardItem.location}" else "保管場所なし"}") 
+                                    },
+                                    onClick = {
+                                        selectedCardIndex = index
+                                        selectedCard = cardItem
+                                        name = cardItem.name
+                                        cost = cardItem.cost.toString()
+                                        attack = cardItem.attack.toString()
+                                        defense = cardItem.defense.toString()
+                                        rarity = cardItem.rarity
+                                        location = cardItem.location
+                                        memo = cardItem.memo
+                                        cardExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
@@ -313,7 +366,7 @@ fun EditCardDialog(
                     if (name.isNotBlank()) {
                         onConfirm(
                             CardInfo(
-                                id = card.id, // 既存のIDを保持
+                                id = selectedCard.id, // 選択されたカードのIDを保持
                                 name = name,
                                 cost = costInt,
                                 attack = attackInt,

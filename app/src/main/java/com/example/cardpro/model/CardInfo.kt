@@ -21,4 +21,16 @@ data class CardInfo(
     val memo: String = "", // カードに関するメモ
     @Ignore
     val count: Int = 1 // カードの枚数（デフォルトは1枚）
-)
+) {
+    // Room用のセカンダリコンストラクタ（@Ignoreフィールドを除外）
+    constructor(
+        id: String,
+        name: String,
+        cost: Int,
+        attack: Int,
+        defense: Int,
+        rarity: String,
+        location: String,
+        memo: String
+    ) : this(id, name, cost, attack, defense, rarity, location, memo, 1)
+}

@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.cardpro.model.CardInfo
 import com.example.cardpro.model.DeckInfo
+import com.example.cardpro.model.GroupedCardInfo
 import com.example.cardpro.viewmodel.CardViewModel
 import com.example.cardpro.viewmodel.ViewModelProviderFactory
 

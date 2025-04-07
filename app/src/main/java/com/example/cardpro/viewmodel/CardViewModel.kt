@@ -7,6 +7,7 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.cardpro.data.repository.CardRepository
 import com.example.cardpro.model.CardInfo
+import com.example.cardpro.model.GroupedCardInfo
 import kotlinx.coroutines.launch
 
 /**
@@ -14,12 +15,20 @@ import kotlinx.coroutines.launch
  */
 class CardViewModel(private val repository: CardRepository) : ViewModel() {
     // カード一覧
-    private val _cardsFlow = repository.getAllCardsGroupedByName().asLiveData()
+    private val _cardsFlow = repository.getAllCards().asLiveData()
     val cards get() = _cardsFlow
+
+    // カード一覧に表示する用
+    private val _uiCardList = repository.getAllCardsGroupedByName().asLiveData()
+    val uiCardList  get() = _uiCardList
 
     // 編集中のカード
     private val _currentCard = mutableStateOf<CardInfo?>(null)
     val currentCard get() = _currentCard.value
+    
+    // 編集中のカードリスト（同じ名前のカードが複数ある場合）
+    private val _currentCards = mutableStateOf<List<CardInfo>>(emptyList())
+    val currentCards get() = _currentCards.value
 
     // ダイアログの表示状態
     private val _showAddDialog = mutableStateOf(false)
@@ -100,9 +109,30 @@ class CardViewModel(private val repository: CardRepository) : ViewModel() {
     /**
      * 編集ダイアログを表示する
      */
-    fun showEditDialog(card: CardInfo) {
-        _currentCard.value = card
-        _showEditDialog.value = true
+    fun showEditDialog(card: GroupedCardInfo) {
+        viewModelScope.launch {
+            // カード名でSQLクエリを実行して、該当するカードをすべて取得
+            val cards = repository.getCardsByName(card.name)
+            if (cards.isNotEmpty()) {
+                _currentCards.value = cards
+                _currentCard.value = cards.first() // 最初のカードを選択
+                _showEditDialog.value = true
+            } else {
+                // カードが見つからない場合は、GroupedCardInfoからCardInfoを作成
+                val cardInfo = CardInfo(
+                    name = card.name,
+                    cost = card.cost,
+                    attack = card.attack,
+                    defense = card.defense,
+                    rarity = card.rarity,
+                    location = card.location,
+                    memo = card.memo
+                )
+                _currentCard.value = cardInfo
+                _currentCards.value = listOf(cardInfo)
+                _showEditDialog.value = true
+            }
+        }
     }
 
     /**
@@ -111,14 +141,34 @@ class CardViewModel(private val repository: CardRepository) : ViewModel() {
     fun hideEditDialog() {
         _showEditDialog.value = false
         _currentCard.value = null
+        _currentCards.value = emptyList()
     }
 
     /**
      * 削除ダイアログを表示する
      */
-    fun showDeleteDialog(card: CardInfo) {
-        _currentCard.value = card
-        _showDeleteDialog.value = true
+    fun showDeleteDialog(card: GroupedCardInfo) {
+        viewModelScope.launch {
+            // カード名でSQLクエリを実行して、該当するカードをすべて取得
+            val cards = repository.getCardsByName(card.name)
+            if (cards.isNotEmpty()) {
+                _currentCard.value = cards.first() // 最初のカードを選択
+                _showDeleteDialog.value = true
+            } else {
+                // カードが見つからない場合は、GroupedCardInfoからCardInfoを作成
+                val cardInfo = CardInfo(
+                    name = card.name,
+                    cost = card.cost,
+                    attack = card.attack,
+                    defense = card.defense,
+                    rarity = card.rarity,
+                    location = card.location,
+                    memo = card.memo
+                )
+                _currentCard.value = cardInfo
+                _showDeleteDialog.value = true
+            }
+        }
     }
 
     /**
@@ -127,6 +177,7 @@ class CardViewModel(private val repository: CardRepository) : ViewModel() {
     fun hideDeleteDialog() {
         _showDeleteDialog.value = false
         _currentCard.value = null
+        _currentCards.value = emptyList()
     }
 
     /**
