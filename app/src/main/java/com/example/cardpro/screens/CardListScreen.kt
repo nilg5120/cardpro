@@ -275,20 +275,6 @@ fun CardItem(
                             showMenu = false
                         }
                     )
-                    
-                    DropdownMenuItem(
-                        text = { Text("削除") },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "削除"
-                            )
-                        },
-                        onClick = {
-                            onDelete()
-                            showMenu = false
-                        }
-                    )
                 }
             }
         }
