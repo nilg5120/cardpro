@@ -381,11 +381,6 @@ fun EditCardDialog(
             ) {
                 Text("更新")
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("キャンセル")
-            }
         }
     )
 }
