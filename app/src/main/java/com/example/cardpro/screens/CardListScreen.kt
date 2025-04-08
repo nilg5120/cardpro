@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
@@ -125,7 +124,22 @@ fun CardListScreen(
                         card = card,
                         cards = viewModel.currentCards,
                         onDismiss = { viewModel.hideEditDialog() },
-                        onConfirm = { viewModel.updateCard(it) }
+                        onConfirm = { viewModel.updateCard(it) },
+                        onDelete = { 
+                            val card = viewModel.currentCard!!
+                            // CardInfoをGroupedCardInfoに変換
+                            val groupedCard = GroupedCardInfo(
+                                name = card.name,
+                                cost = card.cost,
+                                attack = card.attack,
+                                defense = card.defense,
+                                rarity = card.rarity,
+                                location = card.location,
+                                memo = card.memo,
+                                count = 1
+                            )
+                            viewModel.showDeleteDialog(groupedCard)
+                        }
                     )
                 }
                 

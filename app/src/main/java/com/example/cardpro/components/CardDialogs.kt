@@ -17,6 +17,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -193,7 +194,8 @@ fun EditCardDialog(
     card: CardInfo,
     cards: List<CardInfo> = emptyList(),
     onDismiss: () -> Unit,
-    onConfirm: (CardInfo) -> Unit
+    onConfirm: (CardInfo) -> Unit,
+    onDelete: () -> Unit = {}
 ) {
     var selectedCardIndex by remember { mutableStateOf(0) }
     var selectedCard by remember { mutableStateOf(card) }
@@ -391,10 +393,14 @@ fun EditCardDialog(
             }
         },
         icon = {
-            Icon(
-                imageVector = Icons.Default.Delete,
-                contentDescription = "カードを削除"
-            )
+            IconButton(
+                onClick = onDelete
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "カードを削除"
+                )
+            }
         }
     )
 }
