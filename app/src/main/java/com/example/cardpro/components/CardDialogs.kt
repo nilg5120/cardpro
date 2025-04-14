@@ -361,17 +361,28 @@ fun EditCardDialog(
                 )
             }
         },
+        dismissButton = {
+            Row {
+                TextButton(onClick = onDismiss) {
+                    Text("キャンセル")
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                TextButton(onClick = onDelete) {
+                    Text("削除")
+                }
+            }
+        },
         confirmButton = {
             Button(
                 onClick = {
                     val costInt = cost.toIntOrNull() ?: 0
                     val attackInt = attack.toIntOrNull() ?: 0
                     val defenseInt = defense.toIntOrNull() ?: 0
-                    
+
                     if (name.isNotBlank()) {
                         onConfirm(
                             CardInfo(
-                                id = selectedCard.id, // 選択されたカードのIDを保持
+                                id = selectedCard.id,
                                 name = name,
                                 cost = costInt,
                                 attack = attackInt,
@@ -385,21 +396,6 @@ fun EditCardDialog(
                 }
             ) {
                 Text("更新")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("キャンセル")
-            }
-        },
-        icon = {
-            IconButton(
-                onClick = onDelete
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "カードを削除"
-                )
             }
         }
     )
