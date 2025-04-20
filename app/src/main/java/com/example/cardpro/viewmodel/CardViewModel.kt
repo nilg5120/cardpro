@@ -23,12 +23,8 @@ class CardViewModel(private val repository: CardRepository) : ViewModel() {
     val uiCardList  get() = _uiCardList
 
     // 編集中のカード
-    private val _currentCard = mutableStateOf<CardInfo?>(null)
-    val currentCard get() = _currentCard.value
-    
-    // 編集中のカードリスト（同じ名前のカードが複数ある場合）
-    private val _currentCards = mutableStateOf<List<CardInfo>>(emptyList())
-    val currentCards get() = _currentCards.value
+    private val _currentCardList = repository.getCardByName(name = name)
+    val currentCardList get() = _currentCardList
 
     // ダイアログの表示状態
     private val _showAddDialog = mutableStateOf(false)

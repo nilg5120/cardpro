@@ -24,6 +24,11 @@ class CardRepository(private val cardDao: CardDao) {
      * 特定のIDのカードを取得
      */
     suspend fun getCardById(cardId: String): CardInfo? = cardDao.getCardById(cardId)
+
+    /**
+     * 特定の名前のカード複数を取得
+     */
+    suspend fun getCardsByName(name: String): List<CardInfo> = cardDao.getCardsByName(name)
     
     /**
      * カードを追加
@@ -44,10 +49,4 @@ class CardRepository(private val cardDao: CardDao) {
      * カードを削除
      */
     suspend fun deleteCard(card: CardInfo) = cardDao.deleteCard(card)
-    
-    /**
-     * 名前でカードを検索
-     */
-    suspend fun getCardsByName(name: String): List<CardInfo> = cardDao.getCardsByName(name)
-
 }
