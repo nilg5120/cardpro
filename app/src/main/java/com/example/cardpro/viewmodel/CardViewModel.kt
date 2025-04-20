@@ -23,8 +23,17 @@ class CardViewModel(private val repository: CardRepository) : ViewModel() {
     val uiCardList  get() = _uiCardList
 
     // 編集中のカード
-    private val _currentCardList = repository.getCardByName(name = name)
-    val currentCardList get() = _currentCardList
+    private val _currentCardList = mutableStateOf<List<CardInfo>>(emptyList())
+    val currentCardList get() = _currentCardList.value
+
+    // 編集中のカード1枚
+    private val _currentCard = mutableStateOf<CardInfo?>(null)
+    val currentCard get() = _currentCard.value
+
+    // 編集中のカードリスト（同名カードが複数ある可能性に備える）
+    private val _currentCards = mutableStateOf<List<CardInfo>>(emptyList())
+    val currentCards get() = _currentCards.value
+
 
     // ダイアログの表示状態
     private val _showAddDialog = mutableStateOf(false)
@@ -88,6 +97,14 @@ class CardViewModel(private val repository: CardRepository) : ViewModel() {
         hideDeleteDialog()
     }
 
+    // 呼び出し関数
+    fun loadCardsByName(name: String) {
+        viewModelScope.launch {
+            val cards = repository.getCardsByName(name)
+            _currentCardList.value = cards
+        }
+    }
+
     /**
      * 追加ダイアログを表示する
      */
@@ -103,7 +120,7 @@ class CardViewModel(private val repository: CardRepository) : ViewModel() {
     }
 
     /**
-     * 編集ダイアログを表示する
+     * 編集ダイアログを表示する 
      */
     fun showEditDialog(card: GroupedCardInfo) {
         viewModelScope.launch {
