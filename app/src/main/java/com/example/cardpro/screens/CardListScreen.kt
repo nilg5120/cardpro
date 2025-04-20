@@ -45,6 +45,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.cardpro.components.AddCardDialog
 import com.example.cardpro.components.DeleteCardDialog
 import com.example.cardpro.components.EditCardDialog
+import com.example.cardpro.model.CardInfo
 import com.example.cardpro.model.GroupedCardInfo
 import com.example.cardpro.ui.theme.CardproTheme
 import com.example.cardpro.viewmodel.CardViewModel
@@ -103,10 +104,10 @@ fun CardListScreen(
                 items(cards) { card ->
                     CardItem(
                         card = card,
-                        onEdit = { viewModel.showEditDialog(card) },
-                        onDelete = { viewModel.showDeleteDialog(card) }
+                        onEdit = { viewModel.showEditDialog(card) }
                     )
                 }
+
             }
             
             // 追加ダイアログ
@@ -120,39 +121,29 @@ fun CardListScreen(
             // 編集ダイアログ
             viewModel.currentCards.let { cards ->
                 if (viewModel.showEditDialog) {
-                    EditCardDialog(
-                        card = viewModel.currentCard!!,
-                        cards = viewModel.currentCards,
-                        onDismiss = { viewModel.hideEditDialog() },
-                        onConfirm = { viewModel.updateCard(it) },
-                        onDelete = {
-                            viewModel.showDeleteDialog(
-                                GroupedCardInfo(
-                                    name = viewModel.currentCard!!.name,
-                                    cost = viewModel.currentCard!!.cost,
-                                    attack = viewModel.currentCard!!.attack,
-                                    defense = viewModel.currentCard!!.defense,
-                                    rarity = viewModel.currentCard!!.rarity,
-                                    location = viewModel.currentCard!!.location,
-                                    memo = viewModel.currentCard!!.memo,
-                                    count = 1
-                                )
-                            )
-                        }
-                    )
+                    viewModel.currentCard?.let { selectedCard ->
+                        EditCardDialog(
+                            card = selectedCard,
+                            cards = viewModel.currentCards,
+                            onDismiss = { viewModel.hideEditDialog() },
+                            onConfirm = { viewModel.updateCard(it) },
+                            onDelete = { cardToDelete ->
+                                viewModel.setCurrentCard(cardToDelete) // ← 忘れずに currentCard 更新！
+                                viewModel.showDeleteDialog(cardToDelete)
+                            }
+                        )
+
+                    }
                 }
                 
                 // 削除確認ダイアログ
                 if (viewModel.showDeleteDialog) {
-                    DeleteCardDialog(
-                        card = viewModel.currentCard!!,
-                        onDismiss = { viewModel.hideDeleteDialog() },
-                        onConfirm = {
-                            viewModel.currentCard?.let { card ->
-                                viewModel.deleteCard(card)
-                            }
-                        }
-                    )
+                    viewModel.currentCard?.let { selectedCard ->
+                        DeleteCardDialog(
+                            card = selectedCard,
+                            onDismiss = { viewModel.hideDeleteDialog() }
+                        )
+                    }
                 }
             }
         }
@@ -162,8 +153,7 @@ fun CardListScreen(
 @Composable
 fun CardItem(
     card: GroupedCardInfo,
-    onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onEdit: () -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
     

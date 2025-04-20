@@ -8,28 +8,29 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.cardpro.model.CardInfo
+import com.example.cardpro.viewmodel.CardViewModel
+import com.example.cardpro.viewmodel.ViewModelProviderFactory
 
 /**
  * カード追加ダイアログ
@@ -195,9 +196,9 @@ fun EditCardDialog(
     cards: List<CardInfo> = emptyList(),
     onDismiss: () -> Unit,
     onConfirm: (CardInfo) -> Unit,
-    onDelete: () -> Unit = {}
+    onDelete: (CardInfo) -> Unit = {}
 ) {
-    var selectedCardIndex by remember { mutableStateOf(0) }
+    var selectedCardIndex by remember { mutableIntStateOf(0) }
     var selectedCard by remember { mutableStateOf(card) }
     
     var name by remember { mutableStateOf(card.name) }
@@ -367,7 +368,7 @@ fun EditCardDialog(
                     Text("キャンセル")
                 }
                 Spacer(modifier = Modifier.width(8.dp))
-                TextButton(onClick = onDelete) {
+                TextButton(onClick = { onDelete(selectedCard) }) {
                     Text("削除")
                 }
             }
@@ -407,17 +408,22 @@ fun EditCardDialog(
 @Composable
 fun DeleteCardDialog(
     card: CardInfo,
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit
+    onDismiss: () -> Unit
 ) {
+    val context = LocalContext.current
+    val viewModel: CardViewModel = viewModel(
+        factory = ViewModelProviderFactory.getCardViewModelFactory(context)
+    )
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("カードを削除") },
         text = { Text("「${card.name}」を削除してもよろしいですか？") },
         confirmButton = {
-            Button(
-                onClick = onConfirm
-            ) {
+            Button(onClick = {
+                viewModel.deleteCard(card)
+                onDismiss() // ダイアログを閉じる
+            }) {
                 Text("削除")
             }
         },
@@ -428,3 +434,4 @@ fun DeleteCardDialog(
         }
     )
 }
+
