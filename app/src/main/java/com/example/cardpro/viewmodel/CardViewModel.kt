@@ -88,13 +88,11 @@ class CardViewModel(private val repository: CardRepository) : ViewModel() {
     /**
      * カードを削除する
      */
-    fun deleteCard() {
-        currentCard?.let { card ->
-            viewModelScope.launch {
-                repository.deleteCard(card)
-            }
+    fun deleteCard(card: CardInfo) {
+        viewModelScope.launch {
+            repository.deleteCard(card)
+            hideDeleteDialog()
         }
-        hideDeleteDialog()
     }
 
     // 呼び出し関数
@@ -120,7 +118,7 @@ class CardViewModel(private val repository: CardRepository) : ViewModel() {
     }
 
     /**
-     * 編集ダイアログを表示する 
+     * 編集ダイアログを表示する
      */
     fun showEditDialog(card: GroupedCardInfo) {
         viewModelScope.launch {

@@ -118,27 +118,26 @@ fun CardListScreen(
             }
             
             // 編集ダイアログ
-            viewModel.currentCard?.let { card ->
+            viewModel.currentCards.let { cards ->
                 if (viewModel.showEditDialog) {
                     EditCardDialog(
-                        card = card,
+                        card = viewModel.currentCard!!,
                         cards = viewModel.currentCards,
                         onDismiss = { viewModel.hideEditDialog() },
                         onConfirm = { viewModel.updateCard(it) },
-                        onDelete = { 
-                            val card = viewModel.currentCard!!
-                            // CardInfoをGroupedCardInfoに変換
-                            val groupedCard = GroupedCardInfo(
-                                name = card.name,
-                                cost = card.cost,
-                                attack = card.attack,
-                                defense = card.defense,
-                                rarity = card.rarity,
-                                location = card.location,
-                                memo = card.memo,
-                                count = 1
+                        onDelete = {
+                            viewModel.showDeleteDialog(
+                                GroupedCardInfo(
+                                    name = viewModel.currentCard!!.name,
+                                    cost = viewModel.currentCard!!.cost,
+                                    attack = viewModel.currentCard!!.attack,
+                                    defense = viewModel.currentCard!!.defense,
+                                    rarity = viewModel.currentCard!!.rarity,
+                                    location = viewModel.currentCard!!.location,
+                                    memo = viewModel.currentCard!!.memo,
+                                    count = 1
+                                )
                             )
-                            viewModel.showDeleteDialog(groupedCard)
                         }
                     )
                 }
@@ -146,9 +145,13 @@ fun CardListScreen(
                 // 削除確認ダイアログ
                 if (viewModel.showDeleteDialog) {
                     DeleteCardDialog(
-                        card = card,
+                        card = viewModel.currentCard!!,
                         onDismiss = { viewModel.hideDeleteDialog() },
-                        onConfirm = { viewModel.deleteCard() }
+                        onConfirm = {
+                            viewModel.currentCard?.let { card ->
+                                viewModel.deleteCard(card)
+                            }
+                        }
                     )
                 }
             }
