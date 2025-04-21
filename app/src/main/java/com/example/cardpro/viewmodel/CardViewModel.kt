@@ -91,26 +91,7 @@ class CardViewModel(private val repository: CardRepository) : ViewModel() {
         }
     }
 
-    // 呼び出し関数
-    fun loadCardsByName(name: String) {
-        viewModelScope.launch {
-            val cards = repository.getCardsByName(name)
-            _currentCards.value = cards
-        }
-    }
 
-    fun setCurrentCardFromGrouped(grouped: GroupedCardInfo) {
-        _currentCard.value = CardInfo(
-            id = "", // 削除には本来 ID が必要！ここは本物の ID を引く処理が必要（後述）
-            name = grouped.name,
-            cost = grouped.cost,
-            attack = grouped.attack,
-            defense = grouped.defense,
-            rarity = grouped.rarity,
-            location = grouped.location,
-            memo = grouped.memo
-        )
-    }
 
 
     /**
