@@ -185,10 +185,6 @@ fun AddCardDialog(
         }
     )
 }
-
-/**
- * カード編集ダイアログ
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditCardDialog(
@@ -199,8 +195,7 @@ fun EditCardDialog(
     onDelete: (CardInfo) -> Unit = {}
 ) {
     var selectedCardIndex by remember { mutableIntStateOf(0) }
-    var selectedCard by remember { mutableStateOf(card) }
-    
+
     var name by remember { mutableStateOf(card.name) }
     var cost by remember { mutableStateOf(card.cost.toString()) }
     var attack by remember { mutableStateOf(card.attack.toString()) }
@@ -208,54 +203,71 @@ fun EditCardDialog(
     var rarity by remember { mutableStateOf(card.rarity) }
     var location by remember { mutableStateOf(card.location) }
     var memo by remember { mutableStateOf(card.memo) }
+    var selectedCard by remember { mutableStateOf(card) }
     var expanded by remember { mutableStateOf(false) }
     var cardExpanded by remember { mutableStateOf(false) }
 
     val rarityOptions = listOf("コモン", "アンコモン", "レア", "レジェンダリー")
 
+    fun buildUpdatedCard(): CardInfo {
+        val costInt = cost.toIntOrNull() ?: 0
+        val attackInt = attack.toIntOrNull() ?: 0
+        val defenseInt = defense.toIntOrNull() ?: 0
+
+        return CardInfo(
+            id = selectedCard.id, // ← ここが重要！
+            name = name,
+            cost = costInt,
+            attack = attackInt,
+            defense = defenseInt,
+            rarity = rarity,
+            location = location,
+            memo = memo
+        )
+    }
+
     AlertDialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = {
+            if (name.isNotBlank()) {
+                onConfirm(buildUpdatedCard()) // 外側タップでも更新候補を投げる
+            } else {
+                onDismiss() // 無効な場合は通常キャンセル
+            }
+        },
         title = { Text("カードを編集") },
         text = {
             Column {
-                // 同じ名前のカードが複数ある場合、選択ドロップダウンを表示
                 if (cards.size > 1) {
                     Spacer(modifier = Modifier.height(8.dp))
-                    
                     ExposedDropdownMenuBox(
                         expanded = cardExpanded,
                         onExpandedChange = { cardExpanded = it }
                     ) {
                         OutlinedTextField(
-                            value = "カード ${selectedCardIndex + 1} (ID: ${selectedCard.id.take(8)}...)",
+                            value = "カード ${selectedCardIndex + 1} (ID: ${card.id.take(8)}...)",
                             onValueChange = {},
                             readOnly = true,
                             label = { Text("編集するカード") },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = cardExpanded) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .menuAnchor()
+                            modifier = Modifier.fillMaxWidth().menuAnchor()
                         )
-
                         ExposedDropdownMenu(
                             expanded = cardExpanded,
                             onDismissRequest = { cardExpanded = false }
                         ) {
-                            cards.forEachIndexed { index, cardItem ->
+                            cards.forEachIndexed { index, item ->
                                 DropdownMenuItem(
-                                    text = { 
-                                        Text("カード ${index + 1} (ID: ${cardItem.id.take(8)}...) - ${if (cardItem.location.isNotBlank()) "保管場所: ${cardItem.location}" else "保管場所なし"}") 
-                                    },
+                                    text = { Text("カード ${index + 1} (ID: ${item.id.take(8)}...)") },
                                     onClick = {
                                         selectedCardIndex = index
-                                        selectedCard = cardItem
-                                        name = cardItem.name
-                                        cost = cardItem.cost.toString()
-                                        attack = cardItem.attack.toString()
-                                        defense = cardItem.defense.toString()
-                                        rarity = cardItem.rarity
-                                        location = cardItem.location
-                                        memo = cardItem.memo
+                                        selectedCard = item // ← これで id を含むすべての情報を更新！
+                                        name = item.name
+                                        cost = item.cost.toString()
+                                        attack = item.attack.toString()
+                                        defense = item.defense.toString()
+                                        rarity = item.rarity
+                                        location = item.location
+                                        memo = item.memo
                                         cardExpanded = false
                                     }
                                 )
@@ -263,103 +275,53 @@ fun EditCardDialog(
                         }
                     }
                 }
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("カード名") },
-                    modifier = Modifier.fillMaxWidth()
-                )
 
                 Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("カード名") }, modifier = Modifier.fillMaxWidth())
+                Spacer(modifier = Modifier.height(8.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    OutlinedTextField(
-                        value = cost,
-                        onValueChange = { cost = it },
-                        label = { Text("コスト") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.weight(1f)
-                    )
-
+                Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
+                    OutlinedTextField(value = cost, onValueChange = { cost = it }, label = { Text("コスト") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f))
                     Spacer(modifier = Modifier.width(8.dp))
-
-                    OutlinedTextField(
-                        value = attack,
-                        onValueChange = { attack = it },
-                        label = { Text("攻撃力") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.weight(1f)
-                    )
-
+                    OutlinedTextField(value = attack, onValueChange = { attack = it }, label = { Text("攻撃力") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f))
                     Spacer(modifier = Modifier.width(8.dp))
-
-                    OutlinedTextField(
-                        value = defense,
-                        onValueChange = { defense = it },
-                        label = { Text("防御力") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.weight(1f)
-                    )
+                    OutlinedTextField(value = defense, onValueChange = { defense = it }, label = { Text("防御力") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f))
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = it }
-                ) {
+                ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
                     OutlinedTextField(
                         value = rarity,
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("レアリティ") },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor()
+                        modifier = Modifier.fillMaxWidth().menuAnchor()
                     )
-
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
-                    ) {
+                    ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                         rarityOptions.forEach { option ->
-                            DropdownMenuItem(
-                                text = { Text(option) },
-                                onClick = {
-                                    rarity = option
-                                    expanded = false
-                                }
-                            )
+                            DropdownMenuItem(text = { Text(option) }, onClick = {
+                                rarity = option
+                                expanded = false
+                            })
                         }
                     }
                 }
-                
+
                 Spacer(modifier = Modifier.height(8.dp))
-                
-                // 保管場所の入力欄を追加
-                OutlinedTextField(
-                    value = location,
-                    onValueChange = { location = it },
-                    label = { Text("保管場所") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                
+                OutlinedTextField(value = location, onValueChange = { location = it }, label = { Text("保管場所") }, modifier = Modifier.fillMaxWidth())
                 Spacer(modifier = Modifier.height(8.dp))
-                
-                // メモの入力欄を追加
-                OutlinedTextField(
-                    value = memo,
-                    onValueChange = { memo = it },
-                    label = { Text("メモ") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                OutlinedTextField(value = memo, onValueChange = { memo = it }, label = { Text("メモ") }, modifier = Modifier.fillMaxWidth())
+            }
+        },
+        confirmButton = {
+            Button(onClick = {
+                if (name.isNotBlank()) {
+                    onConfirm(buildUpdatedCard())
+                }
+            }) {
+                Text("更新")
             }
         },
         dismissButton = {
@@ -368,39 +330,14 @@ fun EditCardDialog(
                     Text("キャンセル")
                 }
                 Spacer(modifier = Modifier.width(8.dp))
-                TextButton(onClick = { onDelete(selectedCard) }) {
+                TextButton(onClick = { onDelete(card) }) {
                     Text("削除")
                 }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    val costInt = cost.toIntOrNull() ?: 0
-                    val attackInt = attack.toIntOrNull() ?: 0
-                    val defenseInt = defense.toIntOrNull() ?: 0
-
-                    if (name.isNotBlank()) {
-                        onConfirm(
-                            CardInfo(
-                                id = selectedCard.id,
-                                name = name,
-                                cost = costInt,
-                                attack = attackInt,
-                                defense = defenseInt,
-                                rarity = rarity,
-                                location = location,
-                                memo = memo
-                            )
-                        )
-                    }
-                }
-            ) {
-                Text("更新")
             }
         }
     )
 }
+
 
 /**
  * カード削除確認ダイアログ
@@ -434,4 +371,3 @@ fun DeleteCardDialog(
         }
     )
 }
-

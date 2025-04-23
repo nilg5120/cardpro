@@ -1,14 +1,6 @@
 package com.example.cardpro.screens
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -16,23 +8,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.Card
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -50,12 +27,10 @@ import com.example.cardpro.model.GroupedCardInfo
 import com.example.cardpro.ui.theme.CardproTheme
 import com.example.cardpro.viewmodel.CardViewModel
 import com.example.cardpro.viewmodel.ViewModelProviderFactory
+import androidx.compose.runtime.livedata.observeAsState
+import com.example.cardpro.components.ConfirmUpdateDialog
 
-/**
- * カード一覧画面
- *
- * @param onNavigateBack 前の画面に戻る処理
- */
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CardListScreen(
@@ -64,6 +39,9 @@ fun CardListScreen(
         factory = ViewModelProviderFactory.getCardViewModelFactory(LocalContext.current)
     )
 ) {
+    var showConfirmCloseDialog by remember { mutableStateOf(false) }
+    var pendingUpdatedCard by remember { mutableStateOf<CardInfo?>(null) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -107,36 +85,36 @@ fun CardListScreen(
                         onEdit = { viewModel.showEditDialog(card) }
                     )
                 }
-
             }
-            
-            // 追加ダイアログ
+
             if (viewModel.showAddDialog) {
                 AddCardDialog(
                     onDismiss = { viewModel.hideAddDialog() },
                     onConfirm = { viewModel.addCard(it) }
                 )
             }
-            
-            // 編集ダイアログ
+
             viewModel.currentCards.let { cards ->
                 if (viewModel.showEditDialog) {
                     viewModel.currentCard?.let { selectedCard ->
                         EditCardDialog(
                             card = selectedCard,
                             cards = viewModel.currentCards,
-                            onDismiss = { viewModel.hideEditDialog() },
-                            onConfirm = { viewModel.updateCard(it) },
+                            onDismiss = {
+                                showConfirmCloseDialog = true
+                            },
+                            onConfirm = {
+                                pendingUpdatedCard = it
+                                showConfirmCloseDialog = true
+                            },
                             onDelete = { cardToDelete ->
-                                viewModel.setCurrentCard(cardToDelete) // ← 忘れずに currentCard 更新！
+                                viewModel.setCurrentCard(cardToDelete)
                                 viewModel.showDeleteDialog(cardToDelete)
                             }
                         )
-
                     }
                 }
-                
-                // 削除確認ダイアログ
+
                 if (viewModel.showDeleteDialog) {
                     viewModel.currentCard?.let { selectedCard ->
                         DeleteCardDialog(
@@ -145,6 +123,27 @@ fun CardListScreen(
                         )
                     }
                 }
+            }
+
+            if (showConfirmCloseDialog && viewModel.currentCard != null) {
+                ConfirmUpdateDialog(
+                    updated = pendingUpdatedCard,
+                    onConfirm = {
+                        // ✅ 更新処理をここで明示的に呼ぶ
+                        pendingUpdatedCard?.let {
+                            viewModel.updateCard(it)
+                        }
+                        showConfirmCloseDialog = false
+                        viewModel.hideEditDialog()
+                    },
+                    onDismiss = {
+                        showConfirmCloseDialog = false
+                        viewModel.hideEditDialog()
+                    },
+                    onCancel = {
+                        showConfirmCloseDialog = false
+                    }
+                )
             }
         }
     }
@@ -156,7 +155,7 @@ fun CardItem(
     onEdit: () -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
-    
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -168,7 +167,6 @@ fun CardItem(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // カードのコスト表示
             Column(
                 modifier = Modifier
                     .size(40.dp)
@@ -183,8 +181,7 @@ fun CardItem(
                     color = MaterialTheme.colorScheme.primary
                 )
             }
-            
-            // カード情報
+
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -202,7 +199,7 @@ fun CardItem(
                     fontSize = 14.sp,
                     modifier = Modifier.padding(top = 4.dp)
                 )
-                
+
                 if (card.location.isNotBlank()) {
                     Text(
                         text = "保管場所: ${card.location}",
@@ -220,7 +217,7 @@ fun CardItem(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                
+
                 if (card.memo.isNotBlank()) {
                     Text(
                         text = "メモ: ${card.memo}",
@@ -230,8 +227,7 @@ fun CardItem(
                     )
                 }
             }
-            
-            // 攻撃力と防御力
+
             Row(
                 modifier = Modifier.padding(start = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -255,8 +251,7 @@ fun CardItem(
                     modifier = Modifier.padding(start = 8.dp)
                 )
             }
-            
-            // メニューボタン
+
             Box {
                 IconButton(onClick = { showMenu = true }) {
                     Icon(
@@ -264,7 +259,7 @@ fun CardItem(
                         contentDescription = "メニュー"
                     )
                 }
-                
+
                 DropdownMenu(
                     expanded = showMenu,
                     onDismissRequest = { showMenu = false }

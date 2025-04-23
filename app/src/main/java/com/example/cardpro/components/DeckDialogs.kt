@@ -294,7 +294,7 @@ fun AddCardToDeckDialog(
                         .fillMaxWidth()
                         .height(200.dp)
                 ) {
-                    val cards = cardViewModel.cards.value ?: emptyList()
+                    val cards = cardViewModel.allCards.value ?: emptyList()
                     items(cards) { card ->
                         Card(
                             modifier = Modifier

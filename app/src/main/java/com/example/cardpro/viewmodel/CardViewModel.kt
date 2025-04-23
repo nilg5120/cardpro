@@ -1,6 +1,7 @@
 package com.example.cardpro.viewmodel
 
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.asLiveData
@@ -14,13 +15,13 @@ import kotlinx.coroutines.launch
  * カードデータを管理するViewModel
  */
 class CardViewModel(private val repository: CardRepository) : ViewModel() {
-    // カード一覧
-    private val _cardsFlow = repository.getAllCards().asLiveData()
-    val cards get() = _cardsFlow
 
-    // カード一覧に表示する用
-    private val _uiCardList = repository.getAllCardsGroupedByName().asLiveData()
-    val uiCardList  get() = _uiCardList
+    val allCards: LiveData<List<CardInfo>> = repository.getAllCards().asLiveData()
+
+
+    // カード一覧に表示する用（Flow → LiveData 変換で自動更新）
+    val uiCardList: LiveData<List<GroupedCardInfo>> =
+        repository.getAllCardsGroupedByName().asLiveData()
 
     // 編集中のカード
     private val _currentCard = mutableStateOf<CardInfo?>(null)
@@ -29,7 +30,6 @@ class CardViewModel(private val repository: CardRepository) : ViewModel() {
     // 編集中のカードリスト（同名カードが複数ある可能性に備える）
     private val _currentCards = mutableStateOf<List<CardInfo>>(emptyList())
     val currentCards get() = _currentCards.value
-
 
     // ダイアログの表示状態
     private val _showAddDialog = mutableStateOf(false)
@@ -41,7 +41,6 @@ class CardViewModel(private val repository: CardRepository) : ViewModel() {
     private val _showDeleteDialog = mutableStateOf(false)
     val showDeleteDialog get() = _showDeleteDialog.value
 
-    // 初期データの設定
     init {
         // データベースが空の場合は初期データを追加
         viewModelScope.launch {
@@ -87,12 +86,9 @@ class CardViewModel(private val repository: CardRepository) : ViewModel() {
     fun deleteCard(card: CardInfo) {
         viewModelScope.launch {
             repository.deleteCard(card)
-            hideDeleteDialog()
         }
+        hideDeleteDialog()
     }
-
-
-
 
     /**
      * 追加ダイアログを表示する
@@ -113,11 +109,10 @@ class CardViewModel(private val repository: CardRepository) : ViewModel() {
      */
     fun showEditDialog(card: GroupedCardInfo) {
         viewModelScope.launch {
-            // カード名でSQLクエリを実行して、該当するカードをすべて取得
             val cards = repository.getCardsByName(card.name)
             if (cards.isNotEmpty()) {
                 _currentCards.value = cards
-                _currentCard.value = cards.first() // 最初のカードを選択
+                _currentCard.value = cards.first()
                 _showEditDialog.value = true
             }
         }
@@ -140,7 +135,6 @@ class CardViewModel(private val repository: CardRepository) : ViewModel() {
      * 削除ダイアログを表示する
      */
     fun showDeleteDialog(card: CardInfo) {
-        // 渡されたカードをそのまま使用
         _currentCard.value = card
         _showDeleteDialog.value = true
     }
